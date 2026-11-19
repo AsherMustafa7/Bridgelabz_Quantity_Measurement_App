@@ -301,4 +301,251 @@ class QuantityMeasurementAppTest {
         assertEquals(threeFeet, thirtySixInches);
         assertEquals(oneYard, thirtySixInches);
     }
+
+private static final double EPSILON = 1e-6;
+
+// Basic conversions
+
+@Test
+void testConversion_FeetToInches() {
+    assertEquals(
+            12.0,
+            QuantityLength.convert(
+                    1.0, LengthUnit.FEET, LengthUnit.INCHES),
+            EPSILON
+    );
+}
+
+@Test
+void testConversion_InchesToFeet() {
+    assertEquals(
+            2.0,
+            QuantityLength.convert(
+                    24.0, LengthUnit.INCHES, LengthUnit.FEET),
+            EPSILON
+    );
+}
+
+@Test
+void testConversion_YardsToInches() {
+    assertEquals(
+            36.0,
+            QuantityLength.convert(
+                    1.0, LengthUnit.YARDS, LengthUnit.INCHES),
+            EPSILON
+    );
+}
+
+@Test
+void testConversion_InchesToYards() {
+    assertEquals(
+            2.0,
+            QuantityLength.convert(
+                    72.0, LengthUnit.INCHES, LengthUnit.YARDS),
+            EPSILON
+    );
+}
+
+@Test
+void testConversion_CentimetersToInches() {
+    assertEquals(
+            1.0,
+            QuantityLength.convert(
+                    2.54, LengthUnit.CENTIMETERS, LengthUnit.INCHES),
+            EPSILON
+    );
+}
+
+@Test
+void testConversion_FeetToYards() {
+    assertEquals(
+            2.0,
+            QuantityLength.convert(
+                    6.0, LengthUnit.FEET, LengthUnit.YARDS),
+            EPSILON
+    );
+}
+
+// Cross-unit and bidirectional conversions
+
+@Test
+void testConversion_YardsToCentimeters() {
+    double centimeters = QuantityLength.convert(
+            1.0, LengthUnit.YARDS, LengthUnit.CENTIMETERS);
+
+    assertEquals(
+            91.44,
+            centimeters,
+            1e-3
+    );
+}
+
+@Test
+void testConversion_RoundTripPreservesValue() {
+    double originalValue = 15.5;
+
+    double convertedValue = QuantityLength.convert(
+            originalValue, LengthUnit.FEET, LengthUnit.INCHES);
+
+    double returnedValue = QuantityLength.convert(
+            convertedValue, LengthUnit.INCHES, LengthUnit.FEET);
+
+    assertEquals(originalValue, returnedValue, EPSILON);
+}
+
+// Special numeric values
+
+@Test
+void testConversion_ZeroValue() {
+    assertEquals(
+            0.0,
+            QuantityLength.convert(
+                    0.0, LengthUnit.FEET, LengthUnit.INCHES),
+            EPSILON
+    );
+}
+
+@Test
+void testConversion_NegativeValue() {
+    assertEquals(
+            -12.0,
+            QuantityLength.convert(
+                    -1.0, LengthUnit.FEET, LengthUnit.INCHES),
+            EPSILON
+    );
+}
+
+@Test
+void testConversion_LargeValue() {
+    assertEquals(
+            1.2e101,
+            QuantityLength.convert(
+                    1.0e100, LengthUnit.FEET, LengthUnit.INCHES),
+            1e95
+    );
+}
+
+@Test
+void testConversion_SmallValue() {
+    assertEquals(
+            1.2e-99,
+            QuantityLength.convert(
+                    1.0e-100, LengthUnit.FEET, LengthUnit.INCHES),
+            1e-105
+    );
+}
+
+@Test
+void testConversion_SameUnitReturnsOriginalValue() {
+    assertEquals(
+            5.5,
+            QuantityLength.convert(
+                    5.5, LengthUnit.FEET, LengthUnit.FEET),
+            0.0
+    );
+}
+
+// Invalid input handling
+
+@Test
+void testConversion_NullSourceUnitThrowsException() {
+    assertThrows(
+            IllegalArgumentException.class,
+            () -> QuantityLength.convert(
+                    1.0, null, LengthUnit.FEET)
+    );
+}
+
+@Test
+void testConversion_NullTargetUnitThrowsException() {
+    assertThrows(
+            IllegalArgumentException.class,
+            () -> QuantityLength.convert(
+                    1.0, LengthUnit.FEET, null)
+    );
+}
+
+@Test
+void testConversion_NaNThrowsException() {
+    assertThrows(
+            IllegalArgumentException.class,
+            () -> QuantityLength.convert(
+                    Double.NaN, LengthUnit.FEET, LengthUnit.INCHES)
+    );
+}
+
+@Test
+void testConversion_PositiveInfinityThrowsException() {
+    assertThrows(
+            IllegalArgumentException.class,
+            () -> QuantityLength.convert(
+                    Double.POSITIVE_INFINITY,
+                    LengthUnit.FEET,
+                    LengthUnit.INCHES)
+    );
+}
+
+@Test
+void testConversion_NegativeInfinityThrowsException() {
+    assertThrows(
+            IllegalArgumentException.class,
+            () -> QuantityLength.convert(
+                    Double.NEGATIVE_INFINITY,
+                    LengthUnit.FEET,
+                    LengthUnit.INCHES)
+    );
+}
+
+@Test
+void testConversion_OverflowThrowsException() {
+    assertThrows(
+            IllegalArgumentException.class,
+            () -> QuantityLength.convert(
+                    Double.MAX_VALUE,
+                    LengthUnit.YARDS,
+                    LengthUnit.CENTIMETERS)
+    );
+}
+
+// Instance conversion and immutability
+
+@Test
+void testInstanceConversionReturnsNewObject() {
+    QuantityLength original =
+            new QuantityLength(1.0, LengthUnit.YARDS);
+
+    QuantityLength converted =
+            original.convertTo(LengthUnit.INCHES);
+
+    assertEquals(36.0, converted.getValue(), EPSILON);
+    assertEquals(LengthUnit.INCHES, converted.getUnit());
+
+    assertNotSame(original, converted);
+
+    // Original measurement must remain unchanged.
+    assertEquals(1.0, original.getValue(), EPSILON);
+    assertEquals(LengthUnit.YARDS, original.getUnit());
+}
+
+@Test
+void testInstanceConversion_NullTargetThrowsException() {
+    QuantityLength original =
+            new QuantityLength(1.0, LengthUnit.FEET);
+
+    assertThrows(
+            IllegalArgumentException.class,
+            () -> original.convertTo(null)
+    );
+}
+
+// Object representation
+
+@Test
+void testToStringReturnsReadableMeasurement() {
+    QuantityLength length =
+            new QuantityLength(3.0, LengthUnit.FEET);
+
+    assertEquals("3.0 FEET", length.toString());
+}
+
 }
