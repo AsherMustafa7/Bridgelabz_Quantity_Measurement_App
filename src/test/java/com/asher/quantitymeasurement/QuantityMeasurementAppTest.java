@@ -1182,7 +1182,7 @@ void testRoundTripConversion_RefactoredDesign() {
 void testUnitImmutability() {
     LengthUnit[] units = LengthUnit.values();
 
-    assertEquals(4, units.length);
+    assertEquals(5, units.length);
     assertEquals(LengthUnit.FEET, LengthUnit.valueOf("FEET"));
 }
 

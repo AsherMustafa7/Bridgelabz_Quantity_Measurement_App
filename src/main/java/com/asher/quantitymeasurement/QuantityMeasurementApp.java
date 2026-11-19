@@ -1,5 +1,9 @@
 package com.asher.quantitymeasurement;
 
+import com.asher.quantitymeasurement.dto.QuantityDTO;
+import com.asher.quantitymeasurement.facade.QuantityMeasurementFacade;
+import com.asher.quantitymeasurement.factory.QuantityMeasurementFactory;
+
 public class QuantityMeasurementApp {
 
     public static boolean demonstrateEquality(
@@ -15,8 +19,7 @@ public class QuantityMeasurementApp {
 
         if (quantity == null) {
             throw new IllegalArgumentException(
-                    "Measurement cannot be null."
-            );
+                    "Measurement cannot be null.");
         }
 
         return quantity.convertTo(targetUnit);
@@ -29,16 +32,12 @@ public class QuantityMeasurementApp {
 
         if (first == null) {
             throw new IllegalArgumentException(
-                    "First measurement cannot be null."
-            );
+                    "First measurement cannot be null.");
         }
 
         return first.add(second, targetUnit);
     }
 
-    /**
-     * Demonstrates subtraction with an explicitly specified target unit.
-     */
     public static <U extends IMeasurable> Quantity<U> demonstrateSubtraction(
             Quantity<U> first,
             Quantity<U> second,
@@ -46,122 +45,123 @@ public class QuantityMeasurementApp {
 
         if (first == null) {
             throw new IllegalArgumentException(
-                    "First measurement cannot be null."
-            );
+                    "First measurement cannot be null.");
         }
 
         return first.subtract(second, targetUnit);
     }
 
-    /**
-     * Demonstrates division between two quantities of the same category.
-     */
     public static <U extends IMeasurable> double demonstrateDivision(
             Quantity<U> first,
             Quantity<U> second) {
 
         if (first == null) {
             throw new IllegalArgumentException(
-                    "First measurement cannot be null."
-            );
+                    "First measurement cannot be null.");
         }
 
         return first.divide(second);
     }
 
+    private static QuantityDTO createDTO(
+        double value,
+        String unit,
+        String measurementType) {
+
+    return new QuantityDTO(value, unit, measurementType);
+}
+
     public static void main(String[] args) {
 
         System.out.println("Quantity Measurement Application");
-        System.out.println("---------------------------------");
+        System.out.println("--------------------------------");
+
+        // Initialize application dependencies through Factory.
+        QuantityMeasurementFacade facade =
+                QuantityMeasurementFactory.createFacade();
 
         // LENGTH
-        Quantity<LengthUnit> length1 =
-                new Quantity<>(10.0, LengthUnit.FEET);
+        QuantityDTO length1 =
+                createDTO(10.0, "FEET", "LENGTH");
 
-        Quantity<LengthUnit> length2 =
-                new Quantity<>(6.0, LengthUnit.INCHES);
+        QuantityDTO length2 =
+                createDTO(6.0, "INCHES", "LENGTH");
 
         System.out.println("\nLENGTH");
 
-        System.out.println("Equality: "
-                + demonstrateEquality(length1, length2));
+        System.out.println(facade.compare(length1, length2));
 
-        System.out.println("Conversion: "
-                + demonstrateConversion(length1, LengthUnit.INCHES));
+        System.out.println(
+                facade.convert(length1, "INCHES"));
 
-        System.out.println("Addition: "
-                + demonstrateAddition(
-                        length1, length2, LengthUnit.FEET
-                ));
+        System.out.println(
+                facade.add(length1, length2, "FEET"));
 
-        System.out.println("Subtraction: "
-                + demonstrateSubtraction(
-                        length1, length2, LengthUnit.FEET
-                ));
+        System.out.println(
+                facade.subtract(length1, length2, "FEET"));
 
-        System.out.println("Division: "
-                + demonstrateDivision(
-                        new Quantity<>(24.0, LengthUnit.INCHES),
-                        new Quantity<>(2.0, LengthUnit.FEET)
+        System.out.println(
+                facade.divide(
+                        createDTO(24.0, "INCHES", "LENGTH"),
+                        createDTO(2.0, "FEET", "LENGTH")
                 ));
 
         // WEIGHT
-        Quantity<WeightUnit> weight1 =
-                new Quantity<>(10.0, WeightUnit.KILOGRAM);
+        QuantityDTO weight1 =
+                createDTO(10.0, "KILOGRAM", "WEIGHT");
 
-        Quantity<WeightUnit> weight2 =
-                new Quantity<>(5000.0, WeightUnit.GRAM);
+        QuantityDTO weight2 =
+                createDTO(5000.0, "GRAM", "WEIGHT");
 
         System.out.println("\nWEIGHT");
 
-        System.out.println("Equality: "
-                + demonstrateEquality(weight1, weight2));
+        System.out.println(facade.compare(weight1, weight2));
 
-        System.out.println("Conversion: "
-                + demonstrateConversion(weight1, WeightUnit.GRAM));
+        System.out.println(
+                facade.convert(weight1, "GRAM"));
 
-        System.out.println("Addition: "
-                + demonstrateAddition(
-                        weight1, weight2, WeightUnit.KILOGRAM
-                ));
+        System.out.println(
+                facade.add(weight1, weight2, "KILOGRAM"));
 
-        System.out.println("Subtraction: "
-                + demonstrateSubtraction(
-                        weight1, weight2, WeightUnit.KILOGRAM
-                ));
+        System.out.println(
+                facade.subtract(weight1, weight2, "KILOGRAM"));
 
-        System.out.println("Division: "
-                + demonstrateDivision(weight1, weight2));
+        System.out.println(
+                facade.divide(weight1, weight2));
 
         // VOLUME
-        Quantity<VolumeUnit> volume1 =
-                new Quantity<>(5.0, VolumeUnit.LITRE);
+        QuantityDTO volume1 =
+                createDTO(5.0, "LITRE", "VOLUME");
 
-        Quantity<VolumeUnit> volume2 =
-                new Quantity<>(500.0, VolumeUnit.MILLILITRE);
+        QuantityDTO volume2 =
+                createDTO(500.0, "MILLILITRE", "VOLUME");
 
         System.out.println("\nVOLUME");
 
-        System.out.println("Equality: "
-                + demonstrateEquality(volume1, volume2));
+        System.out.println(facade.compare(volume1, volume2));
 
-        System.out.println("Conversion: "
-                + demonstrateConversion(volume1, VolumeUnit.MILLILITRE));
+        System.out.println(
+                facade.convert(volume1, "MILLILITRE"));
 
-        System.out.println("Addition: "
-                + demonstrateAddition(
-                        volume1, volume2, VolumeUnit.LITRE
-                ));
+        System.out.println(
+                facade.add(volume1, volume2, "LITRE"));
 
-        System.out.println("Subtraction: "
-                + demonstrateSubtraction(
-                        volume1, volume2, VolumeUnit.LITRE
-                ));
+        System.out.println(
+                facade.subtract(volume1, volume2, "LITRE"));
 
-        System.out.println("Division: "
-                + demonstrateDivision(
+        System.out.println(
+                facade.divide(
                         volume1,
-                        new Quantity<>(2.5, VolumeUnit.LITRE)
+                        createDTO(2.5, "LITRE", "VOLUME")
                 ));
+
+        // TEMPERATURE
+        QuantityDTO temperature =
+                createDTO(25.0, "CELSIUS", "TEMPERATURE");
+
+        System.out.println("\nTEMPERATURE");
+
+        System.out.println(
+                facade.convert(temperature, "FAHRENHEIT"));
     }
 }
