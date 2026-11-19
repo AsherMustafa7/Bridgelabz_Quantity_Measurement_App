@@ -1,9 +1,8 @@
-
 package com.asher.quantitymeasurement.entity;
 
-import java.io.Serializable;
-
 import com.asher.quantitymeasurement.IMeasurable;
+
+import java.io.Serializable;
 
 public class QuantityMeasurementEntity implements Serializable {
 
@@ -86,6 +85,37 @@ public class QuantityMeasurementEntity implements Serializable {
         this(thisQuantity, thatQuantity, operation);
         this.errorMessage = errorMessage;
         this.isError = isError;
+    }
+
+    // Constructor used when reconstructing database records.
+    public QuantityMeasurementEntity(
+            double thisValue,
+            String thisUnit,
+            String thisMeasurementType,
+            double thatValue,
+            String thatUnit,
+            String thatMeasurementType,
+            String operation,
+            double resultValue,
+            String resultUnit,
+            String resultMeasurementType,
+            String resultString,
+            boolean isError,
+            String errorMessage) {
+
+        this.thisValue = thisValue;
+        this.thisUnit = thisUnit;
+        this.thisMeasurementType = thisMeasurementType;
+        this.thatValue = thatValue;
+        this.thatUnit = thatUnit;
+        this.thatMeasurementType = thatMeasurementType;
+        this.operation = operation;
+        this.resultValue = resultValue;
+        this.resultUnit = resultUnit;
+        this.resultMeasurementType = resultMeasurementType;
+        this.resultString = resultString;
+        this.isError = isError;
+        this.errorMessage = errorMessage;
     }
 
     public double getThisValue() {
