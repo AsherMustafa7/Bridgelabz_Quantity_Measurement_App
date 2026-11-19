@@ -826,4 +826,190 @@ void testAddition_InstanceMethod() {
     assertEquals(2.0, result.getValue(), ADDITION_EPSILON);
     assertEquals(LengthUnit.FEET, result.getUnit());
 }
+
+@Test
+void testAddition_ExplicitTargetUnit_Feet() {
+    QuantityLength result = QuantityLength.add(
+            new QuantityLength(1.0, LengthUnit.FEET),
+            new QuantityLength(12.0, LengthUnit.INCHES),
+            LengthUnit.FEET
+    );
+
+    assertEquals(2.0, result.getValue(), 1e-9);
+    assertEquals(LengthUnit.FEET, result.getUnit());
+}
+
+@Test
+void testAddition_ExplicitTargetUnit_Inches() {
+    QuantityLength result = QuantityLength.add(
+            new QuantityLength(1.0, LengthUnit.FEET),
+            new QuantityLength(12.0, LengthUnit.INCHES),
+            LengthUnit.INCHES
+    );
+
+    assertEquals(24.0, result.getValue(), 1e-9);
+    assertEquals(LengthUnit.INCHES, result.getUnit());
+}
+
+@Test
+void testAddition_ExplicitTargetUnit_Yards() {
+    QuantityLength result = QuantityLength.add(
+            new QuantityLength(1.0, LengthUnit.FEET),
+            new QuantityLength(12.0, LengthUnit.INCHES),
+            LengthUnit.YARDS
+    );
+
+    assertEquals(2.0 / 3.0, result.getValue(), 1e-9);
+    assertEquals(LengthUnit.YARDS, result.getUnit());
+}
+
+@Test
+void testAddition_ExplicitTargetUnit_Centimeters() {
+    QuantityLength result = QuantityLength.add(
+            new QuantityLength(1.0, LengthUnit.INCHES),
+            new QuantityLength(1.0, LengthUnit.INCHES),
+            LengthUnit.CENTIMETERS
+    );
+
+        assertEquals(5.08, result.getValue(), 0.00001);
+        assertEquals(LengthUnit.CENTIMETERS, result.getUnit());
+}
+
+@Test
+void testAddition_ExplicitTargetUnit_SameAsFirstOperand() {
+    QuantityLength result = QuantityLength.add(
+            new QuantityLength(2.0, LengthUnit.YARDS),
+            new QuantityLength(3.0, LengthUnit.FEET),
+            LengthUnit.YARDS
+    );
+
+    assertEquals(3.0, result.getValue(), 1e-9);
+    assertEquals(LengthUnit.YARDS, result.getUnit());
+}
+
+@Test
+void testAddition_ExplicitTargetUnit_SameAsSecondOperand() {
+    QuantityLength result = QuantityLength.add(
+            new QuantityLength(2.0, LengthUnit.YARDS),
+            new QuantityLength(3.0, LengthUnit.FEET),
+            LengthUnit.FEET
+    );
+
+    assertEquals(9.0, result.getValue(), 1e-9);
+    assertEquals(LengthUnit.FEET, result.getUnit());
+}
+
+@Test
+void testAddition_ExplicitTargetUnit_Commutativity() {
+    QuantityLength first = new QuantityLength(1.0, LengthUnit.FEET);
+    QuantityLength second = new QuantityLength(12.0, LengthUnit.INCHES);
+
+    QuantityLength result1 =
+            QuantityLength.add(first, second, LengthUnit.YARDS);
+
+    QuantityLength result2 =
+            QuantityLength.add(second, first, LengthUnit.YARDS);
+
+    assertEquals(result1.getValue(), result2.getValue(), 1e-9);
+    assertEquals(result1.getUnit(), result2.getUnit());
+}
+
+@Test
+void testAddition_ExplicitTargetUnit_WithZero() {
+    QuantityLength result = QuantityLength.add(
+            new QuantityLength(5.0, LengthUnit.FEET),
+            new QuantityLength(0.0, LengthUnit.INCHES),
+            LengthUnit.YARDS
+    );
+
+    assertEquals(5.0 / 3.0, result.getValue(), 1e-9);
+    assertEquals(LengthUnit.YARDS, result.getUnit());
+}
+
+@Test
+void testAddition_ExplicitTargetUnit_NegativeValues() {
+    QuantityLength result = QuantityLength.add(
+            new QuantityLength(5.0, LengthUnit.FEET),
+            new QuantityLength(-2.0, LengthUnit.FEET),
+            LengthUnit.INCHES
+    );
+
+    assertEquals(36.0, result.getValue(), 1e-9);
+    assertEquals(LengthUnit.INCHES, result.getUnit());
+}
+
+@Test
+void testAddition_ExplicitTargetUnit_NullTargetUnit() {
+    QuantityLength first = new QuantityLength(1.0, LengthUnit.FEET);
+    QuantityLength second = new QuantityLength(12.0, LengthUnit.INCHES);
+
+    assertThrows(
+            IllegalArgumentException.class,
+            () -> QuantityLength.add(first, second, null)
+    );
+}
+
+@Test
+void testAddition_ExplicitTargetUnit_LargeToSmallScale() {
+    QuantityLength result = QuantityLength.add(
+            new QuantityLength(1000.0, LengthUnit.FEET),
+            new QuantityLength(500.0, LengthUnit.FEET),
+            LengthUnit.INCHES
+    );
+
+    assertEquals(18000.0, result.getValue(), 1e-9);
+}
+
+@Test
+void testAddition_ExplicitTargetUnit_SmallToLargeScale() {
+    QuantityLength result = QuantityLength.add(
+            new QuantityLength(12.0, LengthUnit.INCHES),
+            new QuantityLength(12.0, LengthUnit.INCHES),
+            LengthUnit.YARDS
+    );
+
+    assertEquals(2.0 / 3.0, result.getValue(), 1e-9);
+}
+
+@Test
+void testAddition_ExplicitTargetUnit_AllUnitCombinations() {
+    LengthUnit[] units = LengthUnit.values();
+
+    for (LengthUnit firstUnit : units) {
+        for (LengthUnit secondUnit : units) {
+            for (LengthUnit targetUnit : units) {
+                QuantityLength first =
+                        new QuantityLength(2.0, firstUnit);
+
+                QuantityLength second =
+                        new QuantityLength(3.0, secondUnit);
+
+                QuantityLength result =
+                        QuantityLength.add(first, second, targetUnit);
+
+                double expected = QuantityLength.convert(
+                        2.0 * firstUnit.getConversionFactor()
+                                + 3.0 * secondUnit.getConversionFactor(),
+                        LengthUnit.FEET,
+                        targetUnit
+                );
+
+                assertEquals(expected, result.getValue(), 1e-9);
+                assertEquals(targetUnit, result.getUnit());
+            }
+        }
+    }
+}
+
+@Test
+void testAddition_ExplicitTargetUnit_PrecisionTolerance() {
+    QuantityLength result = QuantityLength.add(
+            new QuantityLength(2.54, LengthUnit.CENTIMETERS),
+            new QuantityLength(1.0, LengthUnit.INCHES),
+            LengthUnit.CENTIMETERS
+    );
+assertEquals(5.08, result.getValue(), 0.00001);
+assertEquals(LengthUnit.CENTIMETERS, result.getUnit());
+}
+
 }
