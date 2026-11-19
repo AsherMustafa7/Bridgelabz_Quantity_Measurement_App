@@ -1,134 +1,82 @@
-
 package com.asher.quantitymeasurement;
 
 public class QuantityMeasurementApp {
 
-    public static double demonstrateLengthConversion(
-            double value,
-            LengthUnit sourceUnit,
-            LengthUnit targetUnit) {
-
-        return QuantityLength.convert(value, sourceUnit, targetUnit);
-    }
-
-    public static QuantityLength demonstrateLengthConversion(
-            QuantityLength length,
-            LengthUnit targetUnit) {
-
-        if (length == null) {
-            throw new IllegalArgumentException(
-                    "Length measurement cannot be null."
-            );
-        }
-
-        return length.convertTo(targetUnit);
-    }
-
-    public static QuantityLength demonstrateLengthAddition(
-            QuantityLength first,
-            QuantityLength second,
-            LengthUnit targetUnit) {
-
-        return QuantityLength.add(first, second, targetUnit);
-    }
-
-    public static QuantityLength demonstrateLengthAddition(
-            double firstValue,
-            LengthUnit firstUnit,
-            double secondValue,
-            LengthUnit secondUnit,
-            LengthUnit targetUnit) {
-
-        return QuantityLength.add(
-                firstValue,
-                firstUnit,
-                secondValue,
-                secondUnit,
-                targetUnit
-        );
-    }
-
-    public static boolean demonstrateLengthEquality(
-            QuantityLength first,
-            QuantityLength second) {
+    public static boolean demonstrateEquality(
+            Quantity<?> first,
+            Quantity<?> second) {
 
         return first != null && first.equals(second);
     }
 
-    public static boolean demonstrateLengthComparison(
-            double firstValue,
-            LengthUnit firstUnit,
-            double secondValue,
-            LengthUnit secondUnit) {
+    public static <U extends IMeasurable> Quantity<U> demonstrateConversion(
+            Quantity<U> quantity,
+            U targetUnit) {
 
-        QuantityLength first =
-                new QuantityLength(firstValue, firstUnit);
+        if (quantity == null) {
+            throw new IllegalArgumentException(
+                    "Measurement cannot be null."
+            );
+        }
 
-        QuantityLength second =
-                new QuantityLength(secondValue, secondUnit);
+        return quantity.convertTo(targetUnit);
+    }
 
-        return demonstrateLengthEquality(first, second);
+    public static <U extends IMeasurable> Quantity<U> demonstrateAddition(
+            Quantity<U> first,
+            Quantity<U> second,
+            U targetUnit) {
+
+        if (first == null) {
+            throw new IllegalArgumentException(
+                    "First measurement cannot be null."
+            );
+        }
+
+        return first.add(second, targetUnit);
     }
 
     public static void main(String[] args) {
 
-        System.out.println("UC6: Addition of Two Length Units");
-        System.out.println("---------------------------------");
+        System.out.println("UC10: Generic Quantity Measurement");
+        System.out.println("----------------------------------");
 
-        QuantityLength result1 = QuantityLength.add(
-                new QuantityLength(1.0, LengthUnit.FEET),
-                new QuantityLength(2.0, LengthUnit.FEET),
-                LengthUnit.FEET
-        );
+        Quantity<LengthUnit> length1 =
+                new Quantity<>(1.0, LengthUnit.FEET);
 
-        System.out.println(result1);
+        Quantity<LengthUnit> length2 =
+                new Quantity<>(12.0, LengthUnit.INCHES);
 
-        QuantityLength result2 = QuantityLength.add(
-                new QuantityLength(1.0, LengthUnit.FEET),
-                new QuantityLength(12.0, LengthUnit.INCHES),
-                LengthUnit.FEET
-        );
+        System.out.println("Length equality: "
+                + demonstrateEquality(length1, length2));
 
-        System.out.println(result2);
+        System.out.println("Length conversion: "
+                + demonstrateConversion(length1, LengthUnit.INCHES));
 
-        QuantityLength result3 = QuantityLength.add(
-                new QuantityLength(12.0, LengthUnit.INCHES),
-                new QuantityLength(1.0, LengthUnit.FEET),
-                LengthUnit.INCHES
-        );
+        System.out.println("Length addition: "
+                + demonstrateAddition(
+                        length1,
+                        length2,
+                        LengthUnit.FEET
+                ));
 
-        System.out.println(result3);
+        Quantity<WeightUnit> weight1 =
+                new Quantity<>(1.0, WeightUnit.KILOGRAM);
 
-        QuantityLength result4 = QuantityLength.add(
-                new QuantityLength(1.0, LengthUnit.YARDS),
-                new QuantityLength(3.0, LengthUnit.FEET),
-                LengthUnit.YARDS
-        );
+        Quantity<WeightUnit> weight2 =
+                new Quantity<>(1000.0, WeightUnit.GRAM);
 
-        System.out.println(result4);
+        System.out.println("Weight equality: "
+                + demonstrateEquality(weight1, weight2));
 
-        QuantityLength result5 = QuantityLength.add(
-                new QuantityLength(2.54, LengthUnit.CENTIMETERS),
-                new QuantityLength(1.0, LengthUnit.INCHES),
-                LengthUnit.CENTIMETERS
-        );
+        System.out.println("Weight conversion: "
+                + demonstrateConversion(weight1, WeightUnit.GRAM));
 
-        System.out.println(result5);
-
-        QuantityLength result6 = QuantityLength.add(
-                new QuantityLength(5.0, LengthUnit.FEET),
-                new QuantityLength(0.0, LengthUnit.INCHES),
-                LengthUnit.FEET
-        );
-
-        System.out.println(result6);
-
-        QuantityLength result7 = QuantityLength.add(
-                new QuantityLength(5.0, LengthUnit.FEET),
-                new QuantityLength(-2.0, LengthUnit.FEET),
-                LengthUnit.FEET
-        );
-
-        System.out.println(result7);
+        System.out.println("Weight addition: "
+                + demonstrateAddition(
+                        weight1,
+                        weight2,
+                        WeightUnit.KILOGRAM
+                ));
     }
 }

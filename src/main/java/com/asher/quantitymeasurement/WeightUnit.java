@@ -4,7 +4,7 @@ package com.asher.quantitymeasurement;
  * Defines supported weight units.
  * Kilogram is the base unit.
  */
-public enum WeightUnit {
+public enum WeightUnit implements IMeasurable {
 
     KILOGRAM(1.0),
     GRAM(0.001),
@@ -16,13 +16,12 @@ public enum WeightUnit {
         this.conversionFactor = conversionFactor;
     }
 
+    @Override
     public double getConversionFactor() {
         return conversionFactor;
     }
 
-    /**
-     * Converts a value in this unit into kilograms.
-     */
+    @Override
     public double convertToBaseUnit(double value) {
         validateValue(value);
 
@@ -37,9 +36,7 @@ public enum WeightUnit {
         return result;
     }
 
-    /**
-     * Converts a kilogram value into this unit.
-     */
+    @Override
     public double convertFromBaseUnit(double baseValue) {
         validateValue(baseValue);
 
@@ -52,6 +49,11 @@ public enum WeightUnit {
         }
 
         return result;
+    }
+
+    @Override
+    public String getUnitName() {
+        return name();
     }
 
     private static void validateValue(double value) {
