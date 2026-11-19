@@ -1,3 +1,4 @@
+
 package com.asher.quantitymeasurement;
 
 import java.math.BigDecimal;
@@ -36,11 +37,39 @@ public class Quantity<U extends IMeasurable> {
     }
 
     /**
+     * Defines the arithmetic operation performed on base-unit values.
+     */
+    private enum ArithmeticOperation {
+
+        ADD {
+            @Override
+            double compute(double first, double second) {
+                return first + second;
+            }
+        },
+
+        SUBTRACT {
+            @Override
+            double compute(double first, double second) {
+                return first - second;
+            }
+        },
+
+        DIVIDE {
+            @Override
+            double compute(double first, double second) {
+                if (second == 0.0) {
+                    throw new ArithmeticException("Cannot divide by zero quantity.");
+                }
+                return first / second;
+            }
+        };
+
+        abstract double compute(double first, double second);
+    }
+
+    /**
      * Converts this quantity into the specified target unit.
-     *
-     * @param targetUnit target measurement unit
-     * @return a new quantity expressed in the target unit
-     * @throws IllegalArgumentException if targetUnit is null
      */
     public Quantity<U> convertTo(U targetUnit) {
         if (targetUnit == null) {
@@ -61,9 +90,6 @@ public class Quantity<U extends IMeasurable> {
 
     /**
      * Adds another quantity and returns the result in this quantity's unit.
-     *
-     * @param other quantity to add
-     * @return a new quantity in this quantity's unit
      */
     public Quantity<U> add(Quantity<U> other) {
         return add(other, unit);
@@ -71,39 +97,22 @@ public class Quantity<U extends IMeasurable> {
 
     /**
      * Adds another quantity and returns the result in the specified unit.
-     *
-     * @param other quantity to add
-     * @param targetUnit unit for the result
-     * @return a new quantity expressed in targetUnit
      */
     public Quantity<U> add(Quantity<U> other, U targetUnit) {
-        validateOther(other);
-        validateTargetUnit(targetUnit);
-        validateSameCategory(other.unit);
+        double resultInBaseUnit = performBaseArithmetic(
+                other,
+                targetUnit,
+                true,
+                ArithmeticOperation.ADD
+        );
 
-        double firstInBaseUnit = unit.convertToBaseUnit(value);
-        double secondInBaseUnit =
-                other.unit.convertToBaseUnit(other.value);
-
-        double sumInBaseUnit = firstInBaseUnit + secondInBaseUnit;
-
-        if (!Double.isFinite(sumInBaseUnit)) {
-            throw new IllegalArgumentException(
-                    "Addition result exceeds the supported numeric range."
-            );
-        }
-
-        double result = targetUnit.convertFromBaseUnit(sumInBaseUnit);
+        double result = targetUnit.convertFromBaseUnit(resultInBaseUnit);
 
         return new Quantity<>(result, targetUnit);
     }
 
     /**
      * Subtracts another quantity and returns the result in this quantity's unit.
-     *
-     * @param other quantity to subtract
-     * @return a new quantity expressed in this quantity's unit
-     * @throws IllegalArgumentException if other is null or belongs to another category
      */
     public Quantity<U> subtract(Quantity<U> other) {
         return subtract(other, unit);
@@ -111,33 +120,17 @@ public class Quantity<U extends IMeasurable> {
 
     /**
      * Subtracts another quantity and returns the result in the specified unit.
-     * The converted result is rounded to two decimal places using HALF_UP.
-     *
-     * @param other quantity to subtract
-     * @param targetUnit unit for the result
-     * @return a new quantity expressed in targetUnit
-     * @throws IllegalArgumentException if an argument is null, categories differ,
-     *                                  or the result is outside the supported range
+     * The result is rounded to two decimal places using HALF_UP.
      */
     public Quantity<U> subtract(Quantity<U> other, U targetUnit) {
-        validateOther(other);
-        validateTargetUnit(targetUnit);
-        validateSameCategory(other.unit);
+        double resultInBaseUnit = performBaseArithmetic(
+                other,
+                targetUnit,
+                true,
+                ArithmeticOperation.SUBTRACT
+        );
 
-        double firstInBaseUnit = unit.convertToBaseUnit(value);
-        double secondInBaseUnit =
-                other.unit.convertToBaseUnit(other.value);
-
-        double differenceInBaseUnit =
-                firstInBaseUnit - secondInBaseUnit;
-
-        if (!Double.isFinite(differenceInBaseUnit)) {
-            throw new IllegalArgumentException(
-                    "Subtraction result exceeds the supported numeric range."
-            );
-        }
-
-        double result = targetUnit.convertFromBaseUnit(differenceInBaseUnit);
+        double result = targetUnit.convertFromBaseUnit(resultInBaseUnit);
 
         if (!Double.isFinite(result)) {
             throw new IllegalArgumentException(
@@ -145,25 +138,37 @@ public class Quantity<U extends IMeasurable> {
             );
         }
 
-        double roundedResult = BigDecimal.valueOf(result)
-                .setScale(2, RoundingMode.HALF_UP)
-                .doubleValue();
+        double roundedResult = roundToTwoDecimals(result);
 
         return new Quantity<>(roundedResult, targetUnit);
     }
 
     /**
-     * Divides this quantity by another quantity of the same measurement category.
-     * Both quantities are converted to their common base unit before division.
-     *
-     * @param other divisor quantity
-     * @return dimensionless ratio as a double
-     * @throws IllegalArgumentException if other is null or belongs to another category
-     * @throws ArithmeticException if the divisor is zero or the ratio is not finite
+     * Divides this quantity by another quantity of the same category.
+     * Returns a dimensionless scalar.
      */
     public double divide(Quantity<U> other) {
-        validateOther(other);
-        validateSameCategory(other.unit);
+        return performBaseArithmetic(
+                other,
+                null,
+                false,
+                ArithmeticOperation.DIVIDE
+        );
+    }
+
+    /**
+     * Centralized arithmetic engine.
+     *
+     * Validates operands, converts both values into base units,
+     * performs the requested operation, and returns the base-unit result.
+     */
+    private double performBaseArithmetic(
+            Quantity<U> other,
+            U targetUnit,
+            boolean targetUnitRequired,
+            ArithmeticOperation operation) {
+
+        validateArithmeticOperands(other, targetUnit, targetUnitRequired);
 
         double firstInBaseUnit = unit.convertToBaseUnit(value);
         double secondInBaseUnit =
@@ -171,20 +176,37 @@ public class Quantity<U extends IMeasurable> {
 
         if (!Double.isFinite(firstInBaseUnit)
                 || !Double.isFinite(secondInBaseUnit)) {
-            throw new ArithmeticException(
-                    "Converted quantity exceeds the supported numeric range."
+
+            if (operation == ArithmeticOperation.DIVIDE) {
+                throw new ArithmeticException(
+                        "Converted quantity exceeds the supported numeric range."
+                );
+            }
+
+            throw new IllegalArgumentException(
+                    "Arithmetic operand exceeds the supported numeric range."
             );
         }
 
-        if (secondInBaseUnit == 0.0) {
-            throw new ArithmeticException("Cannot divide by zero quantity.");
-        }
-
-        double result = firstInBaseUnit / secondInBaseUnit;
+        double result = operation.compute(
+                firstInBaseUnit,
+                secondInBaseUnit
+        );
 
         if (!Double.isFinite(result)) {
-            throw new ArithmeticException(
-                    "Division result exceeds the supported numeric range."
+            if (operation == ArithmeticOperation.DIVIDE) {
+                throw new ArithmeticException(
+                        "Division result exceeds the supported numeric range."
+                );
+            }
+
+            String operationName =
+                    operation == ArithmeticOperation.ADD
+                            ? "Addition"
+                            : "Subtraction";
+
+            throw new IllegalArgumentException(
+                    operationName + " result exceeds the supported numeric range."
             );
         }
 
@@ -192,18 +214,34 @@ public class Quantity<U extends IMeasurable> {
     }
 
     /**
-     * Validates that another quantity is present.
+     * Centralized validation for all arithmetic operations.
      */
-    private void validateOther(Quantity<?> other) {
+    private void validateArithmeticOperands(
+            Quantity<U> other,
+            U targetUnit,
+            boolean targetUnitRequired) {
+
         if (other == null) {
             throw new IllegalArgumentException(
                     "Second measurement cannot be null."
             );
         }
+
+        if (!Double.isFinite(value) || !Double.isFinite(other.value)) {
+            throw new IllegalArgumentException(
+                    "Measurement values must be finite."
+            );
+        }
+
+        validateSameCategory(other.unit);
+
+        if (targetUnitRequired) {
+            validateTargetUnit(targetUnit);
+        }
     }
 
     /**
-     * Validates that a target unit is present and belongs to this category.
+     * Validates that the target unit is present and belongs to this category.
      */
     private void validateTargetUnit(U targetUnit) {
         if (targetUnit == null) {
@@ -222,6 +260,15 @@ public class Quantity<U extends IMeasurable> {
                     "Operation between different measurement categories is not allowed."
             );
         }
+    }
+
+    /**
+     * Rounds a value to two decimal places using HALF_UP.
+     */
+    private double roundToTwoDecimals(double value) {
+        return BigDecimal.valueOf(value)
+                .setScale(2, RoundingMode.HALF_UP)
+                .doubleValue();
     }
 
     /**
