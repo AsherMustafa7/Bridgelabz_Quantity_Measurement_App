@@ -1,11 +1,10 @@
-
-package com.asher.quantitymeasurement;
+    package com.asher.quantitymeasurement;
 
 /**
- * Defines supported length units and their conversion responsibilities.
+ * Defines supported length units.
  * The base unit for length is FEET.
  */
-public enum LengthUnit {
+public enum LengthUnit implements IMeasurable {
 
     FEET(1.0),
     INCHES(1.0 / 12.0),
@@ -18,13 +17,12 @@ public enum LengthUnit {
         this.conversionFactor = conversionFactor;
     }
 
+    @Override
     public double getConversionFactor() {
         return conversionFactor;
     }
 
-    /**
-     * Converts a value in this unit into the base unit (feet).
-     */
+    @Override
     public double convertToBaseUnit(double value) {
         validateValue(value);
 
@@ -39,9 +37,7 @@ public enum LengthUnit {
         return result;
     }
 
-    /**
-     * Converts a value from the base unit (feet) into this unit.
-     */
+    @Override
     public double convertFromBaseUnit(double baseValue) {
         validateValue(baseValue);
 
@@ -54,6 +50,11 @@ public enum LengthUnit {
         }
 
         return result;
+    }
+
+    @Override
+    public String getUnitName() {
+        return name();
     }
 
     private static void validateValue(double value) {

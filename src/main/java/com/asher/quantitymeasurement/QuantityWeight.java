@@ -1,65 +1,35 @@
 package com.asher.quantitymeasurement;
 
 /**
- * Represents an immutable weight measurement.
+ * Compatibility wrapper for weight measurements.
+ * Core measurement logic is implemented by Quantity.
  */
 public class QuantityWeight {
 
-    private final double value;
-    private final WeightUnit unit;
+    private final Quantity<WeightUnit> quantity;
 
     public QuantityWeight(double value, WeightUnit unit) {
         if (unit == null) {
-            throw new IllegalArgumentException(
-                    "Weight unit cannot be null."
-            );
+            throw new IllegalArgumentException("Weight unit cannot be null.");
         }
 
-        if (!Double.isFinite(value)) {
-            throw new IllegalArgumentException(
-                    "Measurement value must be finite."
-            );
-        }
-
-        this.value = value;
-        this.unit = unit;
+        this.quantity = new Quantity<>(value, unit);
     }
 
     public double getValue() {
-        return value;
+        return quantity.getValue();
     }
 
     public WeightUnit getUnit() {
-        return unit;
+        return quantity.getUnit();
     }
 
-    /**
-     * Converts this measurement into kilograms.
-     */
-    private double convertToBaseUnit() {
-        return unit.convertToBaseUnit(value);
-    }
-
-    /**
-     * Converts this measurement into the specified unit.
-     */
     public QuantityWeight convertTo(WeightUnit targetUnit) {
-        if (targetUnit == null) {
-            throw new IllegalArgumentException(
-                    "Target unit cannot be null."
-            );
-        }
+        Quantity<WeightUnit> result = quantity.convertTo(targetUnit);
 
-        double baseValue = convertToBaseUnit();
-        double convertedValue =
-                targetUnit.convertFromBaseUnit(baseValue);
-
-        return new QuantityWeight(convertedValue, targetUnit);
+        return new QuantityWeight(result.getValue(), result.getUnit());
     }
 
-    /**
-     * Addition with the result in the first operand's unit.
-     */
     public static QuantityWeight add(
             QuantityWeight first,
             QuantityWeight second) {
@@ -70,56 +40,10 @@ public class QuantityWeight {
             );
         }
 
-        return add(first, second, first.unit);
+        return add(first, second, first.getUnit());
     }
 
-    /**
-     * Addition with an explicitly specified target unit.
-     */
     public static QuantityWeight add(
-            QuantityWeight first,
-            QuantityWeight second,
-            WeightUnit targetUnit) {
-
-        validateAdditionInput(first, second, targetUnit);
-
-        return addInTargetUnit(first, second, targetUnit);
-    }
-
-    /**
-     * Instance addition returns the result in this object's unit.
-     */
-    public QuantityWeight add(QuantityWeight other) {
-        return add(this, other, this.unit);
-    }
-
-    /**
-     * Performs addition using kilograms as the common base unit.
-     */
-    private static QuantityWeight addInTargetUnit(
-            QuantityWeight first,
-            QuantityWeight second,
-            WeightUnit targetUnit) {
-
-        double firstInBaseUnit = first.convertToBaseUnit();
-        double secondInBaseUnit = second.convertToBaseUnit();
-
-        double sumInBaseUnit =
-                firstInBaseUnit + secondInBaseUnit;
-
-        if (!Double.isFinite(sumInBaseUnit)) {
-            throw new IllegalArgumentException(
-                    "Addition result exceeds the supported numeric range."
-            );
-        }
-
-        double result =
-                targetUnit.convertFromBaseUnit(sumInBaseUnit);
-
-        return new QuantityWeight(result, targetUnit);
-    }
-
-    private static void validateAdditionInput(
             QuantityWeight first,
             QuantityWeight second,
             WeightUnit targetUnit) {
@@ -136,11 +60,14 @@ public class QuantityWeight {
             );
         }
 
-        if (targetUnit == null) {
-            throw new IllegalArgumentException(
-                    "Target unit cannot be null."
-            );
-        }
+        Quantity<WeightUnit> result =
+                first.quantity.add(second.quantity, targetUnit);
+
+        return new QuantityWeight(result.getValue(), result.getUnit());
+    }
+
+    public QuantityWeight add(QuantityWeight other) {
+        return add(this, other, getUnit());
     }
 
     @Override
@@ -155,19 +82,16 @@ public class QuantityWeight {
 
         QuantityWeight that = (QuantityWeight) object;
 
-        return Double.compare(
-                this.convertToBaseUnit(),
-                that.convertToBaseUnit()
-        ) == 0;
+        return quantity.equals(that.quantity);
     }
 
     @Override
     public int hashCode() {
-        return Double.hashCode(convertToBaseUnit());
+        return quantity.hashCode();
     }
 
     @Override
     public String toString() {
-        return value + " " + unit;
+        return getValue() + " " + getUnit();
     }
 }
