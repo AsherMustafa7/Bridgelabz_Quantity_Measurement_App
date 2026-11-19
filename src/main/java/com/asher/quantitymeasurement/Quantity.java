@@ -4,6 +4,8 @@ package com.asher.quantitymeasurement;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Objects;
+// import IMeasurable
+
 
 /**
  * Represents an immutable quantity of any measurable unit.
@@ -99,6 +101,8 @@ public class Quantity<U extends IMeasurable> {
      * Adds another quantity and returns the result in the specified unit.
      */
     public Quantity<U> add(Quantity<U> other, U targetUnit) {
+        unit.validateOperationSupport("addition");
+
         double resultInBaseUnit = performBaseArithmetic(
                 other,
                 targetUnit,
@@ -123,6 +127,8 @@ public class Quantity<U extends IMeasurable> {
      * The result is rounded to two decimal places using HALF_UP.
      */
     public Quantity<U> subtract(Quantity<U> other, U targetUnit) {
+        unit.validateOperationSupport("subtraction");
+
         double resultInBaseUnit = performBaseArithmetic(
                 other,
                 targetUnit,
@@ -148,6 +154,8 @@ public class Quantity<U extends IMeasurable> {
      * Returns a dimensionless scalar.
      */
     public double divide(Quantity<U> other) {
+        unit.validateOperationSupport("division");
+
         return performBaseArithmetic(
                 other,
                 null,
