@@ -1,4 +1,3 @@
-
 package com.asher.quantitymeasurement;
 
 public enum LengthUnit {
