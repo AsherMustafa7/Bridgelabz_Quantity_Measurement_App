@@ -3,9 +3,6 @@ package com.asher.quantitymeasurement;
 
 public class QuantityMeasurementApp {
 
-    /**
-     * Demonstrates conversion using a raw numeric value.
-     */
     public static double demonstrateLengthConversion(
             double value,
             LengthUnit sourceUnit,
@@ -14,9 +11,6 @@ public class QuantityMeasurementApp {
         return QuantityLength.convert(value, sourceUnit, targetUnit);
     }
 
-    /**
-     * Demonstrates conversion using an existing QuantityLength object.
-     */
     public static QuantityLength demonstrateLengthConversion(
             QuantityLength length,
             LengthUnit targetUnit) {
@@ -30,9 +24,30 @@ public class QuantityMeasurementApp {
         return length.convertTo(targetUnit);
     }
 
-    /**
-     * Demonstrates equality between two length measurements.
-     */
+    public static QuantityLength demonstrateLengthAddition(
+            QuantityLength first,
+            QuantityLength second,
+            LengthUnit targetUnit) {
+
+        return QuantityLength.add(first, second, targetUnit);
+    }
+
+    public static QuantityLength demonstrateLengthAddition(
+            double firstValue,
+            LengthUnit firstUnit,
+            double secondValue,
+            LengthUnit secondUnit,
+            LengthUnit targetUnit) {
+
+        return QuantityLength.add(
+                firstValue,
+                firstUnit,
+                secondValue,
+                secondUnit,
+                targetUnit
+        );
+    }
+
     public static boolean demonstrateLengthEquality(
             QuantityLength first,
             QuantityLength second) {
@@ -40,9 +55,6 @@ public class QuantityMeasurementApp {
         return first != null && first.equals(second);
     }
 
-    /**
-     * Creates two measurements and compares their equality.
-     */
     public static boolean demonstrateLengthComparison(
             double firstValue,
             LengthUnit firstUnit,
@@ -60,56 +72,63 @@ public class QuantityMeasurementApp {
 
     public static void main(String[] args) {
 
-        System.out.println("UC5: Unit-to-Unit Length Conversion");
-        System.out.println("------------------------------------");
+        System.out.println("UC6: Addition of Two Length Units");
+        System.out.println("---------------------------------");
 
-        System.out.println(
-                "1 Foot to Inches: "
-                        + demonstrateLengthConversion(
-                                1.0, LengthUnit.FEET, LengthUnit.INCHES)
+        QuantityLength result1 = QuantityLength.add(
+                new QuantityLength(1.0, LengthUnit.FEET),
+                new QuantityLength(2.0, LengthUnit.FEET),
+                LengthUnit.FEET
         );
 
-        System.out.println(
-                "3 Yards to Feet: "
-                        + demonstrateLengthConversion(
-                                3.0, LengthUnit.YARDS, LengthUnit.FEET)
+        System.out.println(result1);
+
+        QuantityLength result2 = QuantityLength.add(
+                new QuantityLength(1.0, LengthUnit.FEET),
+                new QuantityLength(12.0, LengthUnit.INCHES),
+                LengthUnit.FEET
         );
 
-        System.out.println(
-                "36 Inches to Yards: "
-                        + demonstrateLengthConversion(
-                                36.0, LengthUnit.INCHES, LengthUnit.YARDS)
+        System.out.println(result2);
+
+        QuantityLength result3 = QuantityLength.add(
+                new QuantityLength(12.0, LengthUnit.INCHES),
+                new QuantityLength(1.0, LengthUnit.FEET),
+                LengthUnit.INCHES
         );
 
-        System.out.println(
-                "1 Centimeter to Inches: "
-                        + demonstrateLengthConversion(
-                                1.0, LengthUnit.CENTIMETERS, LengthUnit.INCHES)
+        System.out.println(result3);
+
+        QuantityLength result4 = QuantityLength.add(
+                new QuantityLength(1.0, LengthUnit.YARDS),
+                new QuantityLength(3.0, LengthUnit.FEET),
+                LengthUnit.YARDS
         );
 
-        System.out.println(
-                "0 Feet to Inches: "
-                        + demonstrateLengthConversion(
-                                0.0, LengthUnit.FEET, LengthUnit.INCHES)
+        System.out.println(result4);
+
+        QuantityLength result5 = QuantityLength.add(
+                new QuantityLength(2.54, LengthUnit.CENTIMETERS),
+                new QuantityLength(1.0, LengthUnit.INCHES),
+                LengthUnit.CENTIMETERS
         );
 
-        QuantityLength lengthInYards =
-                new QuantityLength(1.0, LengthUnit.YARDS);
+        System.out.println(result5);
 
-        QuantityLength lengthInInches =
-                demonstrateLengthConversion(
-                        lengthInYards, LengthUnit.INCHES);
-
-        System.out.println(
-                "Instance conversion: " + lengthInYards
-                        + " = " + lengthInInches
+        QuantityLength result6 = QuantityLength.add(
+                new QuantityLength(5.0, LengthUnit.FEET),
+                new QuantityLength(0.0, LengthUnit.INCHES),
+                LengthUnit.FEET
         );
 
-        System.out.println(
-                "Equality check (1 Yard and 3 Feet): "
-                        + demonstrateLengthComparison(
-                                1.0, LengthUnit.YARDS,
-                                3.0, LengthUnit.FEET)
+        System.out.println(result6);
+
+        QuantityLength result7 = QuantityLength.add(
+                new QuantityLength(5.0, LengthUnit.FEET),
+                new QuantityLength(-2.0, LengthUnit.FEET),
+                LengthUnit.FEET
         );
+
+        System.out.println(result7);
     }
 }
