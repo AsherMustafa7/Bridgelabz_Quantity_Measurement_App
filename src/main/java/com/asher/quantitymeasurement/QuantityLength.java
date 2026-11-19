@@ -13,8 +13,11 @@ public class QuantityLength {
         if (unit == null) {
             throw new IllegalArgumentException("Length unit cannot be null.");
         }
+
         if (!Double.isFinite(value)) {
-            throw new IllegalArgumentException("Measurement value must be finite.");
+            throw new IllegalArgumentException(
+                    "Measurement value must be finite."
+            );
         }
 
         this.value = value;
@@ -29,10 +32,16 @@ public class QuantityLength {
         return unit;
     }
 
+    /**
+     * Delegates conversion to the unit.
+     */
     private double convertToBaseUnit() {
-        return value * unit.getConversionFactor();
+        return unit.convertToBaseUnit(value);
     }
 
+    /**
+     * Converts a value from one unit to another.
+     */
     public static double convert(
             double value,
             LengthUnit sourceUnit,
@@ -44,42 +53,35 @@ public class QuantityLength {
             return value;
         }
 
-        double convertedValue = value
-                * sourceUnit.getConversionFactor()
-                / targetUnit.getConversionFactor();
+        double baseValue = sourceUnit.convertToBaseUnit(value);
 
-        if (!Double.isFinite(convertedValue)) {
-            throw new IllegalArgumentException(
-                    "Converted value is outside the supported numeric range."
-            );
-        }
-
-        return convertedValue;
+        return targetUnit.convertFromBaseUnit(baseValue);
     }
 
     public QuantityLength convertTo(LengthUnit targetUnit) {
-        return new QuantityLength(
-                convert(value, unit, targetUnit),
-                targetUnit
-        );
+        double convertedValue = convert(value, unit, targetUnit);
+
+        return new QuantityLength(convertedValue, targetUnit);
     }
 
     /**
-     * UC6: Adds two measurements using the first operand's unit.
+     * UC6: Addition using the first operand's unit.
      */
     public static QuantityLength add(
             QuantityLength first,
             QuantityLength second) {
 
         if (first == null) {
-            throw new IllegalArgumentException("First measurement cannot be null.");
+            throw new IllegalArgumentException(
+                    "First measurement cannot be null."
+            );
         }
 
         return add(first, second, first.unit);
     }
 
     /**
-     * UC7: Adds two measurements using an explicitly specified target unit.
+     * UC7: Addition using an explicitly specified target unit.
      */
     public static QuantityLength add(
             QuantityLength first,
@@ -92,7 +94,7 @@ public class QuantityLength {
     }
 
     /**
-     * UC7: Adds raw measurements using an explicitly specified target unit.
+     * UC7: Addition using raw measurement values.
      */
     public static QuantityLength add(
             double firstValue,
@@ -102,24 +104,30 @@ public class QuantityLength {
             LengthUnit targetUnit) {
 
         if (firstUnit == null || secondUnit == null) {
-            throw new IllegalArgumentException("Measurement units cannot be null.");
+            throw new IllegalArgumentException(
+                    "Measurement units cannot be null."
+            );
         }
 
-        QuantityLength first = new QuantityLength(firstValue, firstUnit);
-        QuantityLength second = new QuantityLength(secondValue, secondUnit);
+        QuantityLength first =
+                new QuantityLength(firstValue, firstUnit);
+
+        QuantityLength second =
+                new QuantityLength(secondValue, secondUnit);
 
         return add(first, second, targetUnit);
     }
 
     /**
-     * UC6: Instance addition returns the result in this object's unit.
+     * Instance addition returns the result in this object's unit.
      */
     public QuantityLength add(QuantityLength other) {
         return add(this, other, this.unit);
     }
 
     /**
-     * Shared private addition implementation.
+     * Shared addition implementation.
+     * Conversion responsibility belongs to LengthUnit.
      */
     private static QuantityLength addInTargetUnit(
             QuantityLength first,
@@ -129,13 +137,6 @@ public class QuantityLength {
         double firstInBaseUnit = first.convertToBaseUnit();
         double secondInBaseUnit = second.convertToBaseUnit();
 
-        if (!Double.isFinite(firstInBaseUnit)
-                || !Double.isFinite(secondInBaseUnit)) {
-            throw new IllegalArgumentException(
-                    "Measurement exceeds the supported numeric range."
-            );
-        }
-
         double sumInBaseUnit = firstInBaseUnit + secondInBaseUnit;
 
         if (!Double.isFinite(sumInBaseUnit)) {
@@ -144,11 +145,8 @@ public class QuantityLength {
             );
         }
 
-        double result = convert(
-                sumInBaseUnit,
-                LengthUnit.FEET,
-                targetUnit
-        );
+        double result =
+                targetUnit.convertFromBaseUnit(sumInBaseUnit);
 
         return new QuantityLength(result, targetUnit);
     }
@@ -159,20 +157,21 @@ public class QuantityLength {
             LengthUnit targetUnit) {
 
         if (first == null) {
-            throw new IllegalArgumentException("First measurement cannot be null.");
+            throw new IllegalArgumentException(
+                    "First measurement cannot be null."
+            );
         }
 
         if (second == null) {
-            throw new IllegalArgumentException("Second measurement cannot be null.");
+            throw new IllegalArgumentException(
+                    "Second measurement cannot be null."
+            );
         }
 
         if (targetUnit == null) {
-            throw new IllegalArgumentException("Target unit cannot be null.");
-        }
-
-        if (!Double.isFinite(first.value)
-                || !Double.isFinite(second.value)) {
-            throw new IllegalArgumentException("Measurement values must be finite.");
+            throw new IllegalArgumentException(
+                    "Target unit cannot be null."
+            );
         }
     }
 
@@ -182,15 +181,21 @@ public class QuantityLength {
             LengthUnit targetUnit) {
 
         if (!Double.isFinite(value)) {
-            throw new IllegalArgumentException("Measurement value must be finite.");
+            throw new IllegalArgumentException(
+                    "Measurement value must be finite."
+            );
         }
 
         if (sourceUnit == null) {
-            throw new IllegalArgumentException("Source unit cannot be null.");
+            throw new IllegalArgumentException(
+                    "Source unit cannot be null."
+            );
         }
 
         if (targetUnit == null) {
-            throw new IllegalArgumentException("Target unit cannot be null.");
+            throw new IllegalArgumentException(
+                    "Target unit cannot be null."
+            );
         }
     }
 
